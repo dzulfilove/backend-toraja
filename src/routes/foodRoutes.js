@@ -17,6 +17,8 @@ router.post("/", auth, upload.single("image"), foodController.create);
 // UPDATE food data + optional replace image
 router.put("/:id", auth, upload.single("image"), foodController.update);
 
+router.post("/:id/image", auth, upload.single("image"), foodController.addImage);
+
 // DELETE food
 router.delete("/:id", auth, foodController.delete);
 
