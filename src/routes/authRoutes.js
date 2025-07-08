@@ -105,4 +105,27 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+// GET /auth/me → cek login & kirim data user
+router.get(
+  "/check",
+  require("../middleware/authMiddleware").auth,
+  async (req, res) => {
+    try {
+      console.log(req.user);
+      // req.user sudah diisi di middleware auth
+      const [rows] = await db.query(
+        "SELECT username FROM users WHERE username=?",
+        [req.user.username]
+      );
+      if (rows.length === 0)
+        return res.status(404).json({ message: "User not found" });
+
+      res.json(rows[0]);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
+
 module.exports = router;

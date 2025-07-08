@@ -6,14 +6,20 @@ const { auth } = require("../middleware/authMiddleware");
 
 router.get("/", auth, controller.getAll);
 
-// route spesifik dulu
-router.put("/image/:id", upload.single("image"), controller.updateImage);
-router.get("/:id/images", auth, controller.getImage);
+// Pisah route
+router.put("/:id", auth, controller.updateHistory);
+// Update gambar (1 file per request)
+router.put(
+  "/:id/image/:imageId",
+  auth,
+  upload.single("image"),
+  controller.updateSingleImage
+);
 
+// Tambah gambar baru (tanpa id)
+router.post("/:id/image", auth, upload.single("image"), controller.addImage);
 // route umum
 router.get("/:id", auth, controller.getById);
-router.put("/:id", auth, controller.update);
-router.delete("/:id", auth, controller.delete);
-router.post("/", auth, controller.create);
+// router.post("/", auth, controller.create);
 
 module.exports = router;

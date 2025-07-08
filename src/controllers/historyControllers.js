@@ -1,4 +1,7 @@
 const db = require("../config/db");
+// const fs = require("fs");
+const path = require("path");
+const fs = require("fs").promises;
 
 // GET all history + images
 exports.getAll = async (req, res) => {
@@ -65,77 +68,98 @@ exports.create = async (req, res) => {
   }
 };
 
-// UPDATE history
-exports.update = async (req, res) => {
+// UPDATE history + update/add images
+// controllers/historyController.js
+exports.updateHistory = async (req, res) => {
+  const connection = await db.getConnection();
   try {
     const { title, description } = req.body;
-    const [result] = await db.query(
+    const historyId = req.params.id;
+
+    const [result] = await connection.query(
       "UPDATE history SET title=?, description=? WHERE id=?",
-      [title, description, req.params.id]
+      [title, description, historyId]
     );
+
     if (result.affectedRows === 0)
-      return res.status(404).json({ message: "Not found" });
+      return res.status(404).json({ message: "History not found" });
 
     res.json({
-      id: req.params.id,
+      id: historyId,
       title,
       description,
+      message: "History updated successfully",
     });
   } catch (err) {
     console.error(err);
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: err.message });
+  } finally {
+    connection.release();
   }
 };
 
-// DELETE history
-exports.delete = async (req, res) => {
-  try {
-    const [result] = await db.query("DELETE FROM history WHERE id=?", [
-      req.params.id,
-    ]);
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: "Not found" });
 
-    res.json({ message: "Deleted successfully" });
+exports.updateSingleImage = async (req, res) => {
+  const connection = await db.getConnection();
+  try {
+    const historyId = req.params.id;
+    const imageId = req.params.imageId;
+    const filename = "uploads/" + req.file.filename;
+
+    // Cari file lama
+    const [rows] = await connection.query(
+      "SELECT image FROM image_history WHERE id=? AND id_history=?",
+      [imageId, historyId]
+    );
+    const oldImage = rows[0]?.image;
+
+    // Update DB
+    const [result] = await connection.query(
+      "UPDATE image_history SET image=? WHERE id=?",
+      [filename, imageId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Image not found" });
+    }
+
+    // Hapus file lama
+    if (oldImage) {
+      const oldPath = path.join(__dirname, "..", oldImage);
+      try {
+        await fs.unlink(oldPath);
+      } catch (e) {
+        console.warn("Gagal hapus file lama:", e.message);
+      }
+    }
+
+    res.json({ message: "Image updated successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
+  } finally {
+    connection.release();
   }
 };
 
-// GET all images of a history (opsional)
-exports.getImage = async (req, res) => {
+
+exports.addImage = async (req, res) => {
+  const connection = await db.getConnection();
   try {
-    const [rows] = await db.query(
-      "SELECT * FROM image_history WHERE id_history = ?",
-      [req.params.id]
+    const historyId = req.params.id;
+    const filename = "uploads/" + req.file.filename;
+
+    await connection.query(
+      "INSERT INTO image_history (id_history, image) VALUES (?, ?)",
+      [historyId, filename]
     );
-    if (rows.length === 0)
-      return res.status(404).json({ message: "Not found" });
-    res.json(rows);
+
+    res.json({ message: "Image added successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
+  } finally {
+    connection.release();
   }
 };
 
-// UPDATE image - upload file baru, simpan path ke db
-exports.updateImage = async (req, res) => {
-  try {
-    // req.file.path berisi path file yang disimpan
-    const imagePath = req.file.path; // contoh: uploads/123456789.jpg
-
-    const [result] = await db.query(
-      "UPDATE image_history SET image=? WHERE id_history=?",
-      [imagePath, req.params.id]
-    );
-
-    if (result.affectedRows === 0)
-      return res.status(404).json({ message: "Not found" });
-
-    res.json({ id: req.params.id, image: imagePath });
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: err.message });
-  }
-};
