@@ -18,6 +18,7 @@ app.use("/api/auth", require("./src/routes/authRoutes"));
 
 app.use("/api/history", require("./src/routes/historyRoutes"));
 app.use("/api/food", require("./src/routes/foodRoutes"));
+app.use("/api/dance", require("./src/routes/danceRoutes"));
 
 const PORT = process.env.PORT || 5000;
 

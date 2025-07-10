@@ -6,15 +6,15 @@ const fs = require("fs").promises;
 // GET all history + images
 exports.getAll = async (req, res) => {
   try {
-    const [food] = await db.query(
-      "SELECT food.*, food_category.name_category FROM food inner join food_category on food.category = food_category.id"
+    const [dance] = await db.query(
+      "SELECT dance.*, dance_category.name_category FROM dance inner join dance_category on dance.category = dance_category.id"
     );
-    const [images] = await db.query("SELECT * FROM image_food");
+    const [images] = await db.query("SELECT * FROM image_dance");
 
-    const data = food.map((food) => ({
-      ...food,
+    const data = dance.map((dance) => ({
+      ...dance,
       images: images
-        .filter((img) => img.id_food === food.id)
+        .filter((img) => img.id_dance === dance.id)
         .map((img) => ({ id: img.id, image: img.image })),
     }));
 
@@ -28,20 +28,20 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const [foods] = await db.query("SELECT * FROM food WHERE id = ?", [
+    const [dances] = await db.query("SELECT * FROM dance WHERE id = ?", [
       req.params.id,
     ]);
-    if (foods.length === 0)
+    if (dances.length === 0)
       return res.status(404).json({ message: "Not found" });
 
-    const food = foods[0];
+    const dance = dances[0];
     const [images] = await db.query(
-      "SELECT * FROM image_food WHERE id_food = ?",
-      [food.id]
+      "SELECT * FROM image_dance WHERE id_dance = ?",
+      [dance.id]
     );
 
     res.json({
-      ...food,
+      ...dance,
       images: images.map((img) => ({ id: img.id, image: img.image })),
     });
   } catch (err) {
@@ -70,7 +70,7 @@ exports.getById = async (req, res) => {
 //     }
 
 //     const [result] = await connection.query(
-//       "INSERT INTO food (name, category, description, image) VALUES (?, ?, ?, ?)",
+//       "INSERT INTO dance (name, category, description, image) VALUES (?, ?, ?, ?)",
 //       [name, category, description, imageUrl]
 //     );
 
@@ -80,7 +80,7 @@ exports.getById = async (req, res) => {
 //       category,
 //       description,
 //       image: imageUrl,
-//       message: "Food created successfully",
+//       message: "dance created successfully",
 //     });
 //   } catch (err) {
 //     console.error(err);
@@ -95,7 +95,7 @@ exports.create = async (req, res) => {
     const { name, category, description } = req.body;
 
     const [result] = await db.query(
-      "INSERT INTO food (title, category, description) VALUES (?, ?, ?)",
+      "INSERT INTO dance (title, category, description) VALUES (?, ?, ?)",
 
       [name, category, description]
     );
@@ -111,26 +111,26 @@ exports.create = async (req, res) => {
   }
 };
 
-exports.updateFood = async (req, res) => {
+exports.updatedance = async (req, res) => {
   const connection = await db.getConnection();
   try {
     const { title, category, description } = req.body;
-    const foodId = req.params.id;
+    const danceId = req.params.id;
 
     const [result] = await connection.query(
-      "UPDATE food SET title=?,category=?, description=? WHERE id=?",
-      [title, category, description, foodId]
+      "UPDATE dance SET title=?,category=?, description=? WHERE id=?",
+      [title, category, description, danceId]
     );
 
     if (result.affectedRows === 0)
-      return res.status(404).json({ message: "food not found" });
+      return res.status(404).json({ message: "dance not found" });
 
     res.json({
-      id: foodId,
+      id: danceId,
       title,
       description,
       category,
-      message: "food updated successfully",
+      message: "dance updated successfully",
     });
   } catch (err) {
     console.error(err);
@@ -140,29 +140,29 @@ exports.updateFood = async (req, res) => {
   }
 };
 
-exports.deleteFood = async (req, res) => {
+exports.deletedance = async (req, res) => {
   const connection = await db.getConnection();
   try {
-    const foodId = req.params.id;
+    const danceId = req.params.id;
 
     await connection.beginTransaction();
 
     // Ambil filename
     const [images] = await connection.query(
-      "SELECT image FROM image_food WHERE id_food = ?",
-      [foodId]
+      "SELECT image FROM image_dance WHERE id_dance = ?",
+      [danceId]
     );
 
-    await connection.query("DELETE FROM image_food WHERE id_food = ?", [
-      foodId,
+    await connection.query("DELETE FROM image_dance WHERE id_dance = ?", [
+      danceId,
     ]);
-    const [result] = await connection.query("DELETE FROM food WHERE id = ?", [
-      foodId,
+    const [result] = await connection.query("DELETE FROM dance WHERE id = ?", [
+      danceId,
     ]);
 
     if (result.affectedRows === 0) {
       await connection.rollback();
-      return res.status(404).json({ message: "Food not found" });
+      return res.status(404).json({ message: "dance not found" });
     }
 
     await connection.commit();
@@ -183,7 +183,7 @@ exports.deleteFood = async (req, res) => {
       }
     }
 
-    res.json({ message: "Food and related images deleted successfully" });
+    res.json({ message: "dance and related images deleted successfully" });
   } catch (err) {
     await connection.rollback();
     console.error(err);
@@ -202,14 +202,14 @@ exports.updateSingleImage = async (req, res) => {
 
     // Cari file lama
     const [rows] = await connection.query(
-      "SELECT image FROM image_food WHERE id=? AND id_food=?",
+      "SELECT image FROM image_dance WHERE id=? AND id_dance=?",
       [imageId, historyId]
     );
     const oldImage = rows[0]?.image;
 
     // Update DB
     const [result] = await connection.query(
-      "UPDATE image_food SET image=? WHERE id=?",
+      "UPDATE image_dance SET image=? WHERE id=?",
       [filename, imageId]
     );
 
@@ -243,7 +243,7 @@ exports.deleteSingleImage = async (req, res) => {
     const imageId = req.params.imageId;
     // Cari file lama
     const [rows] = await connection.query(
-      "SELECT image FROM image_food WHERE id=? AND id_food=?",
+      "SELECT image FROM image_dance WHERE id=? AND id_dance=?",
       [imageId, historyId]
     );
     const oldImage = rows[0]?.image;
@@ -260,7 +260,7 @@ exports.deleteSingleImage = async (req, res) => {
 
     // Update DB
     const [result] = await connection.query(
-      "delete from image_food WHERE id=?",
+      "delete from image_dance WHERE id=?",
       [imageId]
     );
 
@@ -281,12 +281,12 @@ exports.addImage = async (req, res) => {
   const connection = await db.getConnection();
   try {
     console.log(req.file);
-    const foodId = req.params.id;
+    const danceId = req.params.id;
     const filename = "uploads/" + req.file.filename;
 
     await connection.query(
-      "INSERT INTO image_food (id_food, image) VALUES (?, ?)",
-      [foodId, filename]
+      "INSERT INTO image_dance (id_dance, image) VALUES (?, ?)",
+      [danceId, filename]
     );
 
     res.json({ message: "Image added successfully" });
@@ -300,7 +300,7 @@ exports.addImage = async (req, res) => {
 
 exports.getCategories = async (req, res) => {
   try {
-    const [categories] = await db.query("SELECT * FROM food_category");
+    const [categories] = await db.query("SELECT * FROM dance_category");
 
     res.json(categories);
   } catch (err) {
@@ -315,7 +315,7 @@ exports.createCategory = async (req, res) => {
 
     const { name } = req.body;
     const [result] = await db.query(
-      "INSERT INTO food_category (name_category) VALUES (?)",
+      "INSERT INTO dance_category (name_category) VALUES (?)",
 
       [name]
     );

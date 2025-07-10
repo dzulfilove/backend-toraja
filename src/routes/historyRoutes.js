@@ -16,6 +16,13 @@ router.put(
   controller.updateSingleImage
 );
 
+router.delete(
+  "/:id/image/:imageId",
+  auth,
+  upload.single("image"),
+  controller.deleteSingleImage
+);
+
 // Tambah gambar baru (tanpa id)
 router.post("/:id/image", auth, upload.single("image"), controller.addImage);
 // route umum

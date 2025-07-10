@@ -98,7 +98,6 @@ exports.updateHistory = async (req, res) => {
   }
 };
 
-
 exports.updateSingleImage = async (req, res) => {
   const connection = await db.getConnection();
   try {
@@ -142,6 +141,45 @@ exports.updateSingleImage = async (req, res) => {
   }
 };
 
+exports.deleteSingleImage = async (req, res) => {
+  const connection = await db.getConnection();
+  try {
+    const historyId = req.params.id;
+    const imageId = req.params.imageId;
+    // Cari file lama
+    const [rows] = await connection.query(
+      "SELECT image FROM image_history WHERE id=? AND id_history=?",
+      [imageId, historyId]
+    );
+    const oldImage = rows[0]?.image;
+
+    // Hapus file lama
+    if (oldImage) {
+      const oldPath = path.join(__dirname, "..", oldImage);
+      try {
+        await fs.unlink(oldPath);
+      } catch (e) {
+        console.log("Gagal hapus file lama:", e.message);
+      }
+    }
+
+    // Update DB
+    const [result] = await connection.query("delete from image_history WHERE id=?", [
+      imageId,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Image not found" });
+    }
+
+    res.json({ message: "Image updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message });
+  } finally {
+    connection.release();
+  }
+};
 
 exports.addImage = async (req, res) => {
   const connection = await db.getConnection();
@@ -162,4 +200,3 @@ exports.addImage = async (req, res) => {
     connection.release();
   }
 };
-

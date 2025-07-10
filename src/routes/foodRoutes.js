@@ -14,12 +14,37 @@ router.get("/:id", auth, foodController.getById);
 // CREATE new food (with single image upload)
 router.post("/", auth, upload.single("image"), foodController.create);
 
-// UPDATE food data + optional replace image
-router.put("/:id", auth, upload.single("image"), foodController.update);
+// UPDATE food data
+router.put("/:id", auth, upload.single("image"), foodController.updateFood);
 
-router.post("/:id/image", auth, upload.single("image"), foodController.addImage);
+router.put(
+  "/:id/image/:imageId",
+  auth,
+  upload.single("image"),
+  foodController.updateSingleImage
+);
+
+router.delete(
+  "/:id/image/:imageId",
+  auth,
+  upload.single("image"),
+  foodController.deleteSingleImage
+);
+router.post(
+  "/:id/image",
+  auth,
+  upload.single("image"),
+  foodController.addImage
+);
 
 // DELETE food
-router.delete("/:id", auth, foodController.delete);
+router.delete("/:id", auth, foodController.deleteFood);
+
+router.post(
+  "/category",
+  auth,
+  upload.single("image"),
+  foodController.createCategory
+);
 
 module.exports = router;
