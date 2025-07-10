@@ -5,11 +5,11 @@ const upload = require("../middleware/upload"); // import middleware upload
 const { auth } = require("../middleware/authMiddleware");
 
 // GET all food
-router.get("/", auth, foodController.getAll);
-router.get("/categories", auth, foodController.getCategories);
+router.get("/", foodController.getAll);
+router.get("/categories", foodController.getCategories);
 
 // GET food by id
-router.get("/:id", auth, foodController.getById);
+router.get("/:id", foodController.getById);
 
 // CREATE new food (with single image upload)
 router.post("/", auth, upload.single("image"), foodController.create);

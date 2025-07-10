@@ -4,7 +4,7 @@ const controller = require("../controllers/historyControllers");
 const upload = require("../middleware/upload"); // import middleware upload
 const { auth } = require("../middleware/authMiddleware");
 
-router.get("/", auth, controller.getAll);
+router.get("/",controller.getAll);
 
 // Pisah route
 router.put("/:id", auth, controller.updateHistory);
@@ -26,7 +26,7 @@ router.delete(
 // Tambah gambar baru (tanpa id)
 router.post("/:id/image", auth, upload.single("image"), controller.addImage);
 // route umum
-router.get("/:id", auth, controller.getById);
+router.get("/:id", controller.getById);
 // router.post("/", auth, controller.create);
 
 module.exports = router;

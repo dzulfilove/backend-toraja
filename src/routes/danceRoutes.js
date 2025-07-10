@@ -5,11 +5,11 @@ const upload = require("../middleware/upload"); // import middleware upload
 const { auth } = require("../middleware/authMiddleware");
 
 // GET all dance
-router.get("/", auth, danceController.getAll);
-router.get("/categories", auth, danceController.getCategories);
+router.get("/",danceController.getAll);
+router.get("/categories", danceController.getCategories);
 
 // GET dance by id
-router.get("/:id", auth, danceController.getById);
+router.get("/:id", danceController.getById);
 
 // CREATE new dance (with single image upload)
 router.post("/", auth, upload.single("image"), danceController.create);
