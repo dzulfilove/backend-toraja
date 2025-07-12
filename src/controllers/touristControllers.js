@@ -28,7 +28,7 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const [tourists] = await db.query("SELECT * FROM tourist WHERE id = ?", [
+    const [tourists] = await db.query("SELECT tourist.*, tourist_category.name_category FROM tourist inner join tourist_category on tourist.category=tourist_category.id WHERE tourist.id = ?", [
       req.params.id,
     ]);
     if (tourists.length === 0)
