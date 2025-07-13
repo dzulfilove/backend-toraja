@@ -5,6 +5,8 @@ const upload = require("../middleware/upload"); // import middleware upload
 const { auth } = require("../middleware/authMiddleware");
 
 // GET all food
+router.get("/part",foodController.getAllPart);
+
 router.get("/", foodController.getAll);
 router.get("/categories", foodController.getCategories);
 

@@ -26,6 +26,27 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getAllPart = async (req, res) => {
+  try {
+    const [philosophy] = await db.query(
+      "SELECT philosophy.* FROM philosophy limit 4"
+    );
+    // const [images] = await db.query("SELECT * FROM image_food");
+
+    // const data = food.map((food) => ({
+    //   ...food,
+    //   images: images
+    //     .filter((img) => img.id_food === food.id)
+    //     .map((img) => ({ id: img.id, image: img.image })),
+    // }));
+
+    console.log(philosophy, "data ");
+    res.json(philosophy);
+  } catch (err) {
+    console.error(err); // debug cepat
+    res.status(500).json({ message: err.message });
+  }
+};
 exports.getById = async (req, res) => {
   try {
     const [philosophys] = await db.query("SELECT * FROM philosophy WHERE id = ?", [

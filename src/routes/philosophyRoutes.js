@@ -6,6 +6,7 @@ const { auth } = require("../middleware/authMiddleware");
 
 // GET all food
 router.get("/", filosofiController.getAll);
+router.get("/part",filosofiController.getAllPart);
 // router.get("/categories", filosofiController.getCategories);
 
 // GET food by id

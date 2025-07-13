@@ -26,6 +26,27 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getAllPart = async (req, res) => {
+  try {
+    const [tourist] = await db.query(
+      "SELECT tourist.*, tourist_category.name_category FROM tourist inner join tourist_category on tourist.category = tourist_category.id limit 4"
+    );
+    const [images] = await db.query("SELECT * FROM image_tourist");
+
+    const data = tourist.map((tourist) => ({
+      ...tourist,
+      images: images
+        .filter((img) => img.id_tourist === tourist.id)
+        .map((img) => ({ id: img.id, image: img.image })),
+    }));
+
+    console.log(data, "data ");
+    res.json(data);
+  } catch (err) {
+    console.error(err); // debug cepat
+    res.status(500).json({ message: err.message });
+  }
+};
 exports.getById = async (req, res) => {
   try {
     const [tourists] = await db.query("SELECT tourist.*, tourist_category.name_category FROM tourist inner join tourist_category on tourist.category=tourist_category.id WHERE tourist.id = ?", [

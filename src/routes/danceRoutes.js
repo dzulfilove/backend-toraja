@@ -6,6 +6,7 @@ const { auth } = require("../middleware/authMiddleware");
 
 // GET all dance
 router.get("/",danceController.getAll);
+router.get("/part",danceController.getAllPart);
 router.get("/categories", danceController.getCategories);
 
 // GET dance by id

@@ -6,6 +6,8 @@ const { auth } = require("../middleware/authMiddleware");
 
 // GET all tourist
 router.get("/",touristController.getAll);
+router.get("/part",touristController.getAllPart);
+
 router.get("/categories", touristController.getCategories);
 
 // GET tourist by id

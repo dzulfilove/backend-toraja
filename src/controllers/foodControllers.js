@@ -26,6 +26,29 @@ exports.getAll = async (req, res) => {
   }
 };
 
+
+exports.getAllPart = async (req, res) => {
+  try {
+    const [food] = await db.query(
+      "SELECT food.*, food_category.name_category FROM food inner join food_category on food.category = food_category.id limit 4"
+    );
+    const [images] = await db.query("SELECT * FROM image_food");
+
+    const data = food.map((food) => ({
+      ...food,
+      images: images
+        .filter((img) => img.id_food === food.id)
+        .map((img) => ({ id: img.id, image: img.image })),
+    }));
+
+    console.log(data, "data ");
+    res.json(data);
+  } catch (err) {
+    console.error(err); // debug cepat
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.getById = async (req, res) => {
   try {
     const [foods] = await db.query("SELECT food.*, food_category.name_category FROM food inner join food_category on food.category = food_category.id WHERE food.id = ?", [

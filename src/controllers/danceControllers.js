@@ -26,6 +26,27 @@ exports.getAll = async (req, res) => {
   }
 };
 
+exports.getAllPart = async (req, res) => {
+  try {
+    const [dance] = await db.query(
+      "SELECT dance.*, dance_category.name_category FROM dance inner join dance_category on dance.category = dance_category.id limit 4"
+    );
+    const [images] = await db.query("SELECT * FROM image_dance");
+
+    const data = dance.map((dance) => ({
+      ...dance,
+      images: images
+        .filter((img) => img.id_dance === dance.id)
+        .map((img) => ({ id: img.id, image: img.image })),
+    }));
+
+    console.log(data, "data ");
+    res.json(data);
+  } catch (err) {
+    console.error(err); // debug cepat
+    res.status(500).json({ message: err.message });
+  }
+};
 exports.getById = async (req, res) => {
   try {
     const [dances] = await db.query("SELECT * FROM dance WHERE id = ?", [
