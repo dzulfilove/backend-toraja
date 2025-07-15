@@ -14,10 +14,10 @@ router.get("/categories", foodController.getCategories);
 router.get("/:id", foodController.getById);
 
 // CREATE new food (with single image upload)
-router.post("/", auth, upload.single("image"), foodController.create);
+router.post("/", auth, foodController.create);
 
 // UPDATE food data
-router.put("/:id", auth, upload.single("image"), foodController.updateFood);
+router.put("/:id", auth, foodController.updateFood);
 
 router.put(
   "/:id/image/:imageId",
@@ -45,7 +45,6 @@ router.delete("/:id", auth, foodController.deleteFood);
 router.post(
   "/category",
   auth,
-  upload.single("image"),
   foodController.createCategory
 );
 

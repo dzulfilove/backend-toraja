@@ -6,10 +6,14 @@ const fs = require("fs").promises;
 // GET all history + images
 exports.getAll = async (req, res) => {
   try {
+    console.log("[GET ALL] Fetching dance list...");
     const [dance] = await db.query(
-      "SELECT dance.*, dance_category.name_category FROM dance inner join dance_category on dance.category = dance_category.id"
+      "SELECT dance.*, dance_category.name_category FROM dance INNER JOIN dance_category ON dance.category = dance_category.id"
     );
+    console.log("[GET ALL] Dance rows:", dance);
+
     const [images] = await db.query("SELECT * FROM image_dance");
+    console.log("[GET ALL] Image rows:", images);
 
     const data = dance.map((dance) => ({
       ...dance,
@@ -18,20 +22,24 @@ exports.getAll = async (req, res) => {
         .map((img) => ({ id: img.id, image: img.image })),
     }));
 
-    console.log(data, "data ");
+    console.log("[GET ALL] Final combined data:", data);
     res.json(data);
   } catch (err) {
-    console.error(err); // debug cepat
+    console.error("[GET ALL] Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
 exports.getAllPart = async (req, res) => {
   try {
+    console.log("[GET ALL PART] Fetching first 4 dances...");
     const [dance] = await db.query(
-      "SELECT dance.*, dance_category.name_category FROM dance inner join dance_category on dance.category = dance_category.id limit 4"
+      "SELECT dance.*, dance_category.name_category FROM dance INNER JOIN dance_category ON dance.category = dance_category.id LIMIT 4"
     );
+    console.log("[GET ALL PART] Dance rows:", dance);
+
     const [images] = await db.query("SELECT * FROM image_dance");
+    console.log("[GET ALL PART] Image rows:", images);
 
     const data = dance.map((dance) => ({
       ...dance,
@@ -40,86 +48,55 @@ exports.getAllPart = async (req, res) => {
         .map((img) => ({ id: img.id, image: img.image })),
     }));
 
-    console.log(data, "data ");
+    console.log("[GET ALL PART] Final combined data:", data);
     res.json(data);
   } catch (err) {
-    console.error(err); // debug cepat
+    console.error("[GET ALL PART] Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 exports.getById = async (req, res) => {
   try {
+    console.log("[GET BY ID] Params:", req.params);
     const [dances] = await db.query("SELECT * FROM dance WHERE id = ?", [
       req.params.id,
     ]);
-    if (dances.length === 0)
+    console.log("[GET BY ID] Dance rows:", dances);
+
+    if (dances.length === 0) {
+      console.warn("[GET BY ID] Dance not found for id:", req.params.id);
       return res.status(404).json({ message: "Not found" });
+    }
 
     const dance = dances[0];
     const [images] = await db.query(
       "SELECT * FROM image_dance WHERE id_dance = ?",
       [dance.id]
     );
+    console.log("[GET BY ID] Image rows:", images);
 
     res.json({
       ...dance,
       images: images.map((img) => ({ id: img.id, image: img.image })),
     });
   } catch (err) {
-    console.error(err);
+    console.error("[GET BY ID] Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// // CREATE new history
-// exports.create = async (req, res) => {
-//   const connection = await db.getConnection();
-//   console.log("BODY:", req.body);
-
-//   try {
-//     const { name, category, description } = req.body;
-//     if (!req.file) {
-//       return res.status(400).json({ message: "Image file is required" });
-//     }
-
-//     const filename = req.file.filename;
-//     const baseUrl = `${req.protocol}://${req.get("host")}`;
-//     const imageUrl = `uploads/${filename}`;
-
-//     if (!name || !category || !description) {
-//       return res.status(400).json({ message: "Incomplete data" });
-//     }
-
-//     const [result] = await connection.query(
-//       "INSERT INTO dance (name, category, description, image) VALUES (?, ?, ?, ?)",
-//       [name, category, description, imageUrl]
-//     );
-
-//     res.status(201).json({
-//       id: result.insertId,
-//       name,
-//       category,
-//       description,
-//       image: imageUrl,
-//       message: "dance created successfully",
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(400).json({ message: err.message });
-//   } finally {
-//     connection.release();
-//   }
-// };
-
 exports.create = async (req, res) => {
   try {
+    console.log("[CREATE] Request body:", req.body);
     const { name, category, description } = req.body;
 
     const [result] = await db.query(
       "INSERT INTO dance (title, category, description) VALUES (?, ?, ?)",
-
       [name, category, description]
     );
+    console.log("[CREATE] Insert result:", result);
+
     res.status(201).json({
       id: result.insertId,
       name,
@@ -127,7 +104,7 @@ exports.create = async (req, res) => {
       description,
     });
   } catch (err) {
-    console.error(err);
+    console.error("[CREATE] Error:", err);
     res.status(400).json({ message: err.message });
   }
 };
@@ -135,6 +112,9 @@ exports.create = async (req, res) => {
 exports.updatedance = async (req, res) => {
   const connection = await db.getConnection();
   try {
+    console.log("[UPDATE DANCE] Params:", req.params);
+    console.log("[UPDATE DANCE] Body:", req.body);
+
     const { title, category, description } = req.body;
     const danceId = req.params.id;
 
@@ -142,9 +122,12 @@ exports.updatedance = async (req, res) => {
       "UPDATE dance SET title=?,category=?, description=? WHERE id=?",
       [title, category, description, danceId]
     );
+    console.log("[UPDATE DANCE] Update result:", result);
 
-    if (result.affectedRows === 0)
+    if (result.affectedRows === 0) {
+      console.warn("[UPDATE DANCE] Dance not found with id:", danceId);
       return res.status(404).json({ message: "dance not found" });
+    }
 
     res.json({
       id: danceId,
@@ -154,7 +137,7 @@ exports.updatedance = async (req, res) => {
       message: "dance updated successfully",
     });
   } catch (err) {
-    console.error(err);
+    console.error("[UPDATE DANCE] Error:", err);
     res.status(500).json({ message: err.message });
   } finally {
     connection.release();
@@ -164,15 +147,16 @@ exports.updatedance = async (req, res) => {
 exports.deletedance = async (req, res) => {
   const connection = await db.getConnection();
   try {
+    console.log("[DELETE DANCE] Params:", req.params);
     const danceId = req.params.id;
 
     await connection.beginTransaction();
 
-    // Ambil filename
     const [images] = await connection.query(
       "SELECT image FROM image_dance WHERE id_dance = ?",
       [danceId]
     );
+    console.log("[DELETE DANCE] Images to delete:", images);
 
     await connection.query("DELETE FROM image_dance WHERE id_dance = ?", [
       danceId,
@@ -180,26 +164,29 @@ exports.deletedance = async (req, res) => {
     const [result] = await connection.query("DELETE FROM dance WHERE id = ?", [
       danceId,
     ]);
+    console.log("[DELETE DANCE] Delete result:", result);
 
     if (result.affectedRows === 0) {
       await connection.rollback();
+      console.warn("[DELETE DANCE] Dance not found with id:", danceId);
       return res.status(404).json({ message: "dance not found" });
     }
 
     await connection.commit();
 
-    // Hapus file fisik
     for (const img of images) {
-      // Kalau field image = "uploads/xxx.jpg"
       const relativePath = img.image.replace(/\\/g, "/");
       const filePath = path.resolve(__dirname, "../", relativePath);
       try {
         await fs.unlink(filePath);
-        console.log("File terhapus:", filePath);
+        console.log("[DELETE DANCE] File deleted:", filePath);
       } catch (err) {
         if (err.code !== "ENOENT") {
-          // abaikan kalau file memang tidak ada
-          console.error("Gagal hapus file:", filePath, err.message);
+          console.error(
+            "[DELETE DANCE] Failed to delete file:",
+            filePath,
+            err.message
+          );
         }
       }
     }
@@ -207,7 +194,7 @@ exports.deletedance = async (req, res) => {
     res.json({ message: "dance and related images deleted successfully" });
   } catch (err) {
     await connection.rollback();
-    console.error(err);
+    console.error("[DELETE DANCE] Error:", err);
     res.status(500).json({ message: err.message });
   } finally {
     connection.release();
@@ -217,40 +204,44 @@ exports.deletedance = async (req, res) => {
 exports.updateSingleImage = async (req, res) => {
   const connection = await db.getConnection();
   try {
+    console.log("[UPDATE IMAGE] Params:", req.params);
+    console.log("[UPDATE IMAGE] Uploaded file:", req.file);
+
     const historyId = req.params.id;
     const imageId = req.params.imageId;
     const filename = "uploads/" + req.file.filename;
 
-    // Cari file lama
     const [rows] = await connection.query(
       "SELECT image FROM image_dance WHERE id=? AND id_dance=?",
       [imageId, historyId]
     );
+    console.log("[UPDATE IMAGE] Old image rows:", rows);
     const oldImage = rows[0]?.image;
 
-    // Update DB
     const [result] = await connection.query(
       "UPDATE image_dance SET image=? WHERE id=?",
       [filename, imageId]
     );
+    console.log("[UPDATE IMAGE] Update result:", result);
 
     if (result.affectedRows === 0) {
+      console.warn("[UPDATE IMAGE] Image not found with id:", imageId);
       return res.status(404).json({ message: "Image not found" });
     }
 
-    // Hapus file lama
     if (oldImage) {
       const oldPath = path.join(__dirname, "..", oldImage);
       try {
         await fs.unlink(oldPath);
+        console.log("[UPDATE IMAGE] Old file deleted:", oldPath);
       } catch (e) {
-        console.warn("Gagal hapus file lama:", e.message);
+        console.warn("[UPDATE IMAGE] Failed to delete old file:", e.message);
       }
     }
 
     res.json({ message: "Image updated successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("[UPDATE IMAGE] Error:", err);
     res.status(500).json({ message: err.message });
   } finally {
     connection.release();
@@ -260,38 +251,41 @@ exports.updateSingleImage = async (req, res) => {
 exports.deleteSingleImage = async (req, res) => {
   const connection = await db.getConnection();
   try {
+    console.log("[DELETE IMAGE] Params:", req.params);
     const historyId = req.params.id;
     const imageId = req.params.imageId;
-    // Cari file lama
+
     const [rows] = await connection.query(
       "SELECT image FROM image_dance WHERE id=? AND id_dance=?",
       [imageId, historyId]
     );
+    console.log("[DELETE IMAGE] Old image rows:", rows);
     const oldImage = rows[0]?.image;
 
-    // Hapus file lama
     if (oldImage) {
       const oldPath = path.join(__dirname, "..", oldImage);
       try {
         await fs.unlink(oldPath);
+        console.log("[DELETE IMAGE] Old file deleted:", oldPath);
       } catch (e) {
-        console.log("Gagal hapus file lama:", e.message);
+        console.warn("[DELETE IMAGE] Failed to delete old file:", e.message);
       }
     }
 
-    // Update DB
     const [result] = await connection.query(
-      "delete from image_dance WHERE id=?",
+      "DELETE FROM image_dance WHERE id=?",
       [imageId]
     );
+    console.log("[DELETE IMAGE] Delete result:", result);
 
     if (result.affectedRows === 0) {
+      console.warn("[DELETE IMAGE] Image not found with id:", imageId);
       return res.status(404).json({ message: "Image not found" });
     }
 
-    res.json({ message: "Image updated successfully" });
+    res.json({ message: "Image deleted successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("[DELETE IMAGE] Error:", err);
     res.status(500).json({ message: err.message });
   } finally {
     connection.release();
@@ -301,18 +295,21 @@ exports.deleteSingleImage = async (req, res) => {
 exports.addImage = async (req, res) => {
   const connection = await db.getConnection();
   try {
-    console.log(req.file);
+    console.log("[ADD IMAGE] Params:", req.params);
+    console.log("[ADD IMAGE] Uploaded file:", req.file);
+
     const danceId = req.params.id;
     const filename = "uploads/" + req.file.filename;
 
-    await connection.query(
+    const [result] = await connection.query(
       "INSERT INTO image_dance (id_dance, image) VALUES (?, ?)",
       [danceId, filename]
     );
+    console.log("[ADD IMAGE] Insert result:", result);
 
-    res.json({ message: "Image added successfully" });
+    res.json({ message: "Image added successfully", id: result.insertId });
   } catch (err) {
-    console.error(err);
+    console.error("[ADD IMAGE] Error:", err);
     res.status(500).json({ message: err.message });
   } finally {
     connection.release();
@@ -321,31 +318,34 @@ exports.addImage = async (req, res) => {
 
 exports.getCategories = async (req, res) => {
   try {
+    console.log("[GET CATEGORIES] Fetching categories...");
     const [categories] = await db.query("SELECT * FROM dance_category");
+    console.log("[GET CATEGORIES] Result:", categories);
 
     res.json(categories);
   } catch (err) {
-    console.error(err); // debug cepat
+    console.error("[GET CATEGORIES] Error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
 exports.createCategory = async (req, res) => {
   try {
-    console.log(req.body, "bodyy");
+    console.log("[CREATE CATEGORY] Request body:", req.body);
 
     const { name } = req.body;
     const [result] = await db.query(
       "INSERT INTO dance_category (name_category) VALUES (?)",
-
       [name]
     );
+    console.log("[CREATE CATEGORY] Insert result:", result);
+
     res.status(201).json({
       id: result.insertId,
       name,
     });
   } catch (err) {
-    console.error(err);
+    console.error("[CREATE CATEGORY] Error:", err);
     res.status(400).json({ message: err.message });
   }
 };

@@ -13,10 +13,10 @@ router.get("/categories", danceController.getCategories);
 router.get("/:id", danceController.getById);
 
 // CREATE new dance (with single image upload)
-router.post("/", auth, upload.single("image"), danceController.create);
+router.post("/", auth, danceController.create);
 
 // UPDATE dance data
-router.put("/:id", auth, upload.single("image"), danceController.updatedance);
+router.put("/:id", auth, danceController.updatedance);
 
 router.put(
   "/:id/image/:imageId",
@@ -44,7 +44,6 @@ router.delete("/:id", auth, danceController.deletedance);
 router.post(
   "/category",
   auth,
-  upload.single("image"),
   danceController.createCategory
 );
 

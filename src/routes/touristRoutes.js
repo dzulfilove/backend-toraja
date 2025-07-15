@@ -14,10 +14,10 @@ router.get("/categories", touristController.getCategories);
 router.get("/:id", touristController.getById);
 
 // CREATE new tourist (with single image upload)
-router.post("/", auth, upload.single("image"), touristController.create);
+router.post("/", auth, touristController.create);
 
 // UPDATE tourist data
-router.put("/:id", auth, upload.single("image"), touristController.updatetourist);
+router.put("/:id", auth, touristController.updatetourist);
 
 router.put(
   "/:id/image/:imageId",
@@ -45,7 +45,6 @@ router.delete("/:id", auth, touristController.deletetourist);
 router.post(
   "/category",
   auth,
-  upload.single("image"),
   touristController.createCategory
 );
 

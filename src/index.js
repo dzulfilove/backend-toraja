@@ -1,28 +1,29 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const db = require("./src/config/db"); // import db pool
-
+const db = require("./config/db"); // import db pool
+const functions = require("firebase-functions");
 const app = express();
+
 app.use(cors());
-app.use(express.json());
+// app.use(express.json());
+
+app.use("/uploads", express.static("uploads"));
+
+// ...
+app.use("/api/auth", require("./routes/authRoutes"));
+
+app.use("/api/history", require("./routes/historyRoutes"));
+app.use("/api/food", require("./routes/foodRoutes"));
+app.use("/api/philosophy", require("./routes/philosophyRoutes"));
+app.use("/api/dance", require("./routes/danceRoutes"));
+app.use("/api/tourist", require("./routes/touristRoutes"));
 
 // Naikkan limit body-parser
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-app.use("/uploads", express.static("uploads"));
-
-// ...
-app.use("/api/auth", require("./src/routes/authRoutes"));
-
-app.use("/api/history", require("./src/routes/historyRoutes"));
-app.use("/api/food", require("./src/routes/foodRoutes"));
-app.use("/api/philosophy", require("./src/routes/philosophyRoutes"));
-app.use("/api/dance", require("./src/routes/danceRoutes"));
-app.use("/api/tourist", require("./src/routes/touristRoutes"));
-
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.APP_PORT || 5000;
 
 // ✅ Test config & db connection sebelum start server
 async function startServer() {
@@ -49,3 +50,5 @@ async function startServer() {
 }
 
 startServer();
+
+exports.toraja = functions.https.onRequest(app);

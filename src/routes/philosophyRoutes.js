@@ -6,17 +6,21 @@ const { auth } = require("../middleware/authMiddleware");
 
 // GET all food
 router.get("/", filosofiController.getAll);
-router.get("/part",filosofiController.getAllPart);
+router.get("/part", filosofiController.getAllPart);
 // router.get("/categories", filosofiController.getCategories);
 
 // GET food by id
 router.get("/:id", filosofiController.getById);
 
 // CREATE new food (with single image upload)
-router.post("/", auth, upload.single("image"), filosofiController.create);
+router.post("/", auth, filosofiController.create);
 
 // UPDATE food data
-router.put("/:id", auth, upload.single("image"), filosofiController.updatePhilosophy);
+router.put(
+  "/:id",
+  auth,
+  filosofiController.updatePhilosophy
+);
 
 // router.put(
 //   "/:id/image/:imageId",
