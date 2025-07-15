@@ -6,7 +6,7 @@ const functions = require("firebase-functions");
 const app = express();
 
 app.use(cors());
-// app.use(express.json());
+app.use(express.json());
 
 app.use("/uploads", express.static("uploads"));
 
